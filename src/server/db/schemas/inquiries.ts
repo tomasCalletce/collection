@@ -1,0 +1,33 @@
+import {
+  pgTable,
+  timestamp,
+  uuid,
+  varchar,
+  json,
+  integer,
+} from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { StatusInquiryEnum } from "~/server/db/schemas/constants";
+
+export const inquiries = pgTable("inquiries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  target_email: varchar("target_email", { length: 255 }).notNull(),
+  ask_repetition: integer("ask_repetition").notNull().default(0),
+  state: varchar("state", { length: 50 }).notNull().default("pending"),
+  invoice_data: json("invoice_data").notNull(),
+  status: StatusInquiryEnum("status").notNull().default("PENDING"),
+  start_date: timestamp("start_date").notNull().defaultNow(),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const verifyInvoicesSchema = createInsertSchema(inquiries).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+export const formInvoicesSchema = createInsertSchema(inquiries).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
