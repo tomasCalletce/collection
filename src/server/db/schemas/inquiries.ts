@@ -12,8 +12,7 @@ import { StatusInquiryEnum } from "~/server/db/schemas/constants";
 export const inquiries = pgTable("inquiries", {
   id: uuid("id").primaryKey().defaultRandom(),
   target_email: varchar("target_email", { length: 255 }).notNull(),
-  ask_repetition: integer("ask_repetition").notNull().default(0),
-  state: varchar("state", { length: 50 }).notNull().default("pending"),
+  ask_repetition: integer("ask_repetition").notNull(),
   invoice_data: json("invoice_data").notNull(),
   status: StatusInquiryEnum("status").notNull().default("PENDING"),
   start_date: timestamp("start_date").notNull().defaultNow(),
