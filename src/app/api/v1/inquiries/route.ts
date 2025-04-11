@@ -1,6 +1,7 @@
 import { db } from "~/server/db/connection";
 import { inquiries } from "~/server/db/schemas/inquiries";
 import { verifyInvoicesSchema } from "~/server/db/schemas/inquiries";
+import { startCollectionInitiative } from "~/trigger/start-collection-initiative";
 
 type CreateInquiryBody = {
   target_email: string;
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
     const { target_email, invoice_data, ask_repetition, timezone, cron } =
       verifyInvoicesSchema.parse(body);
 
-    const newInquiry = await db
+    const [newInquiry] = await db
       .insert(inquiries)
       .values({
         target_email: target_email,
@@ -38,11 +39,29 @@ export async function POST(request: Request) {
         created_at: inquiries.created_at,
         updated_at: inquiries.updated_at,
       });
+    if (!newInquiry) {
+      return Response.json(
+        { error: "Failed to create inquiry" },
+        { status: 500 },
+      );
+    }
+
+    const handle = await startCollectionInitiative.trigger(
+      { initiative_id: newInquiry.id },
+      { delay: "1h" },
+    );
+
+    if (!handle) {
+      return Response.json(
+        { error: "Failed to create inquiry" },
+        { status: 500 },
+      );
+    }
 
     return Response.json(
       {
         success: true,
-        data: newInquiry[0],
+        data: newInquiry,
       },
       { status: 201 },
     );

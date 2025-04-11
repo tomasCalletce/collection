@@ -18,6 +18,7 @@ export const all = publicProcedure
         target_email: inquiries.target_email,
         ask_repetition: inquiries.ask_repetition,
         invoice_data: inquiries.invoice_data,
+        timezone: inquiries.timezone,
         status: inquiries.status,
         start_date: inquiries.start_date,
         created_at: inquiries.created_at,
