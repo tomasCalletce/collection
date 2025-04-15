@@ -1,7 +1,7 @@
 import { schedules, AbortTaskRunError } from "@trigger.dev/sdk/v3";
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db/connection";
-import { inquiries } from "~/server/db/schemas/inquiries";
+import { collectionWorkloads } from "~/server/db/schemas/collection-workloads";
 import { resend } from "~/resend/connection";
 import { retry } from "@trigger.dev/sdk/v3";
 
@@ -12,35 +12,35 @@ export const collectionInitiative = schedules.task({
       throw new AbortTaskRunError("External ID is required");
     }
 
-    const [inquiry] = await db
+    const [collectionWorkload] = await db
       .select({
-        id: inquiries.id,
-        target_email: inquiries.target_email,
-        ask_repetition: inquiries.ask_repetition,
-        invoice_data: inquiries.invoice_data,
-        status: inquiries.status,
-        start_date: inquiries.start_date,
-        created_at: inquiries.created_at,
-        updated_at: inquiries.updated_at,
+        id: collectionWorkloads.id,
+        target_email: collectionWorkloads.target_email,
+        ask_repetition: collectionWorkloads.ask_repetition,
+        invoice_data: collectionWorkloads.invoice_data,
+        status: collectionWorkloads.status,
+        start_date: collectionWorkloads.start_date,
+        created_at: collectionWorkloads.created_at,
+        updated_at: collectionWorkloads.updated_at,
       })
-      .from(inquiries)
-      .where(eq(inquiries.id, payload.externalId))
+      .from(collectionWorkloads)
+      .where(eq(collectionWorkloads.id, payload.externalId))
       .limit(1);
-    if (!inquiry) {
-      throw new AbortTaskRunError("Inquiry not found");
+    if (!collectionWorkload) {
+      throw new AbortTaskRunError("Collection workload not found");
     }
 
-    const inqueryEmailResult = await retry.onThrow(
+    const inquiryEmailResult = await retry.onThrow(
       async () => {
         const { data, error } = await resend.emails.send({
-          from: "updates.usecroma.com",
-          to: [inquiry.target_email],
+          from: "tr@updates.usecroma.com",
+          to: [collectionWorkload.target_email],
           subject: "Hello World",
           html: "<strong>It works!</strong>",
         });
 
         if (error) {
-          console.log(error);
+          console.log(error.message);
           throw new AbortTaskRunError("Failed to send email");
         }
 
@@ -48,7 +48,5 @@ export const collectionInitiative = schedules.task({
       },
       { maxAttempts: 2 },
     );
-
-    return inqueryEmailResult;
   },
 });

@@ -1,6 +1,6 @@
 import { publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db/connection";
-import { inquiries } from "~/server/db/schemas/inquiries";
+import { inquiries } from "~/server/db/schemas/collection-workloads";
 import { desc } from "drizzle-orm";
 import { z } from "zod";
 

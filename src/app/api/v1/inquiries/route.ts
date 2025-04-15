@@ -1,6 +1,6 @@
 import { db } from "~/server/db/connection";
-import { inquiries } from "~/server/db/schemas/inquiries";
-import { verifyInvoicesSchema } from "~/server/db/schemas/inquiries";
+import { collectionWorkloads } from "~/server/db/schemas/collection-workloads";
+import { verifyCollectionWorkloadsSchema } from "~/server/db/schemas/collection-workloads";
 import { startCollectionInitiative } from "~/trigger/start-collection-initiative";
 
 type CreateInquiryBody = {
@@ -16,10 +16,10 @@ export async function POST(request: Request) {
     const body = (await request.json()) as CreateInquiryBody;
 
     const { target_email, invoice_data, ask_repetition, timezone, cron } =
-      verifyInvoicesSchema.parse(body);
+      verifyCollectionWorkloadsSchema.parse(body);
 
-    const [newInquiry] = await db
-      .insert(inquiries)
+    const [newCollectionWorkload] = await db
+      .insert(collectionWorkloads)
       .values({
         target_email: target_email,
         invoice_data: invoice_data,
@@ -28,18 +28,18 @@ export async function POST(request: Request) {
         cron: cron,
       })
       .returning({
-        id: inquiries.id,
-        target_email: inquiries.target_email,
-        ask_repetition: inquiries.ask_repetition,
-        invoice_data: inquiries.invoice_data,
-        timezone: inquiries.timezone,
-        cron: inquiries.cron,
-        status: inquiries.status,
-        start_date: inquiries.start_date,
-        created_at: inquiries.created_at,
-        updated_at: inquiries.updated_at,
+        id: collectionWorkloads.id,
+        target_email: collectionWorkloads.target_email,
+        ask_repetition: collectionWorkloads.ask_repetition,
+        invoice_data: collectionWorkloads.invoice_data,
+        timezone: collectionWorkloads.timezone,
+        cron: collectionWorkloads.cron,
+        status: collectionWorkloads.status,
+        start_date: collectionWorkloads.start_date,
+        created_at: collectionWorkloads.created_at,
+        updated_at: collectionWorkloads.updated_at,
       });
-    if (!newInquiry) {
+    if (!newCollectionWorkload) {
       return Response.json(
         { error: "Failed to create inquiry" },
         { status: 500 },
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     const handle = await startCollectionInitiative.trigger(
-      { initiative_id: newInquiry.id },
+      { initiative_id: newCollectionWorkload.id },
       { delay: "1s" },
     );
 
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         success: true,
-        data: newInquiry,
+        data: newCollectionWorkload,
       },
       { status: 201 },
     );
