@@ -2,6 +2,8 @@ import { schedules, AbortTaskRunError } from "@trigger.dev/sdk/v3";
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db/connection";
 import { inquiries } from "~/server/db/schemas/inquiries";
+import { resend } from "~/resend/connection";
+import { EmailTemplate } from "~/resend/templates/collection-inquiry";
 
 export const collectionInitiative = schedules.task({
   id: "collection-initiative",
@@ -28,8 +30,17 @@ export const collectionInitiative = schedules.task({
       throw new AbortTaskRunError("Inquiry not found");
     }
 
-    //ask mcp server of the user for any updates 
+    const { data, error } = await resend.emails.send({
+      from: "Acme <onboarding@resend.dev>",
+      to: [inquiry.target_email],
+      subject: "Hello world",
+      react: await EmailTemplate({ firstName: "John" }),
+    });
+    if (error) {
+      throw new AbortTaskRunError("Failed to send email");
+    }
 
-    console.log(inquiry);
+    console.log(data);
+    return data;
   },
 });
