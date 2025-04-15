@@ -1,15 +1,15 @@
-import { schemaTask } from "@trigger.dev/sdk/v3";
+import { schedules, AbortTaskRunError } from "@trigger.dev/sdk/v3";
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db/connection";
 import { inquiries } from "~/server/db/schemas/inquiries";
-import { z } from "zod";
 
-export const collectionInitiative = schemaTask({
+export const collectionInitiative = schedules.task({
   id: "collection-initiative",
-  schema: z.object({
-    initiative_id: z.string().uuid(),
-  }),
   run: async (payload) => {
+    if (!payload.externalId) {
+      throw new AbortTaskRunError("External ID is required");
+    }
+
     const [inquiry] = await db
       .select({
         id: inquiries.id,
@@ -22,13 +22,13 @@ export const collectionInitiative = schemaTask({
         updated_at: inquiries.updated_at,
       })
       .from(inquiries)
-      .where(eq(inquiries.id, payload.initiative_id))
+      .where(eq(inquiries.id, payload.externalId))
       .limit(1);
-
     if (!inquiry) {
-      console.log("No pending inquiries found to process");
-      return;
+      throw new AbortTaskRunError("Inquiry not found");
     }
+
+    //ask mcp server of the user for any updates 
 
     console.log(inquiry);
   },

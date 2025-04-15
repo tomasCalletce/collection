@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
     const handle = await startCollectionInitiative.trigger(
       { initiative_id: newInquiry.id },
-      { delay: "1h" },
+      { delay: "1s" },
     );
 
     if (!handle) {
