@@ -3,7 +3,6 @@ import { eq } from "drizzle-orm";
 import { db } from "~/server/db/connection";
 import { inquiries } from "~/server/db/schemas/inquiries";
 import { resend } from "~/resend/connection";
-import { InquiryEmailTemplate } from "~/resend/templates/collection-inquiry";
 
 export const collectionInitiative = schedules.task({
   id: "collection-initiative",
@@ -33,8 +32,8 @@ export const collectionInitiative = schedules.task({
     const { data, error } = await resend.emails.send({
       from: "Acme <onboarding@resend.dev>",
       to: [inquiry.target_email],
-      subject: "Hello world",
-      react: InquiryEmailTemplate({ firstName: "John" }) as React.ReactElement,
+      subject: "Hello World",
+      html: "<strong>It works!</strong>",
     });
     if (error) {
       throw new AbortTaskRunError("Failed to send email");

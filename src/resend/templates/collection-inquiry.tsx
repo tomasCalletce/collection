@@ -1,13 +1,15 @@
 import * as React from "react";
 
-interface InquiryEmailTemplateProps {
+interface EmailTemplateProps {
   firstName: string;
 }
 
-export const InquiryEmailTemplate: React.FC<
-  Readonly<InquiryEmailTemplateProps>
-> = ({ firstName }) => (
+export const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
+  firstName,
+}) => (
   <div>
     <h1>Welcome, {firstName}!</h1>
   </div>
 );
+
+export default EmailTemplate;
