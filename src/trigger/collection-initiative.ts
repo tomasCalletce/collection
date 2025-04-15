@@ -1,15 +1,17 @@
-import { schemaTask } from "@trigger.dev/sdk/v3";
+import { schedules, AbortTaskRunError } from "@trigger.dev/sdk/v3";
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db/connection";
 import { inquiries } from "~/server/db/schemas/inquiries";
-import { z } from "zod";
+import { resend } from "~/resend/connection";
+import { EmailTemplate } from "~/resend/templates/collection-inquiry";
 
-export const collectionInitiative = schemaTask({
+export const collectionInitiative = schedules.task({
   id: "collection-initiative",
-  schema: z.object({
-    initiative_id: z.string().uuid(),
-  }),
   run: async (payload) => {
+    if (!payload.externalId) {
+      throw new AbortTaskRunError("External ID is required");
+    }
+
     const [inquiry] = await db
       .select({
         id: inquiries.id,
@@ -22,14 +24,23 @@ export const collectionInitiative = schemaTask({
         updated_at: inquiries.updated_at,
       })
       .from(inquiries)
-      .where(eq(inquiries.id, payload.initiative_id))
+      .where(eq(inquiries.id, payload.externalId))
       .limit(1);
-
     if (!inquiry) {
-      console.log("No pending inquiries found to process");
-      return;
+      throw new AbortTaskRunError("Inquiry not found");
     }
 
-    console.log(inquiry);
+    const { data, error } = await resend.emails.send({
+      from: "Acme <onboarding@resend.dev>",
+      to: [inquiry.target_email],
+      subject: "Hello world",
+      react: await EmailTemplate({ firstName: "John" }),
+    });
+    if (error) {
+      throw new AbortTaskRunError("Failed to send email");
+    }
+
+    console.log(data);
+    return data;
   },
 });
