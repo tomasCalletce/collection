@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "~/server/db/connection";
 import { inquiries } from "~/server/db/schemas/inquiries";
 import { resend } from "~/resend/connection";
+import { retry } from "@trigger.dev/sdk/v3";
 
 export const collectionInitiative = schedules.task({
   id: "collection-initiative",
@@ -29,17 +30,25 @@ export const collectionInitiative = schedules.task({
       throw new AbortTaskRunError("Inquiry not found");
     }
 
-    const { data, error } = await resend.emails.send({
-      from: "Acme <onboarding@resend.dev>",
-      to: [inquiry.target_email],
-      subject: "Hello World",
-      html: "<strong>It works!</strong>",
-    });
-    if (error) {
-      throw new AbortTaskRunError("Failed to send email");
-    }
+    const inqueryEmailResult = await retry.onThrow(
+      async () => {
+        const { data, error } = await resend.emails.send({
+          from: "updates.usecroma.com",
+          to: [inquiry.target_email],
+          subject: "Hello World",
+          html: "<strong>It works!</strong>",
+        });
 
-    console.log(data);
-    return data;
+        if (error) {
+          console.log(error);
+          throw new AbortTaskRunError("Failed to send email");
+        }
+
+        return data;
+      },
+      { maxAttempts: 2 },
+    );
+
+    return inqueryEmailResult;
   },
 });

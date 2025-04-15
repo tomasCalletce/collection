@@ -49,7 +49,6 @@ export const startCollectionInitiative = schemaTask({
         deduplicationKey: `collection-initiative-${inquiry.id}`,
         externalId: inquiry.id,
       });
-
       if (!createdSchedule) {
         throw new AbortTaskRunError("Failed to create schedule");
       }
