@@ -4,6 +4,7 @@ import { db } from "~/server/db/connection";
 import { collectionWorkloads } from "~/server/db/schemas/collection-workloads";
 import { resend } from "~/resend/connection";
 import { retry } from "@trigger.dev/sdk/v3";
+import { CollectionInquiryTemplate } from "~/resend/templates/collection-inquiry";
 
 export const collectionInitiative = schedules.task({
   id: "collection-initiative",
@@ -33,10 +34,12 @@ export const collectionInitiative = schedules.task({
     const inquiryEmailResult = await retry.onThrow(
       async () => {
         const { data, error } = await resend.emails.send({
-          from: "tr@updates.usecroma.com",
-          to: [collectionWorkload.target_email],
+          from: "hello@updates.usecroma.com",
+          to: ["tomas@nilho.com"],
           subject: "Hello World",
-          html: "<strong>It works!</strong>",
+          react: CollectionInquiryTemplate({
+            firstName: "John",
+          }) as React.ReactElement,
         });
 
         if (error) {
