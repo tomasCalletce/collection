@@ -1,13 +1,13 @@
+import ReminderCollectionInquiry from "~/resend/templates/reminder-collection";
 import { schedules, AbortTaskRunError } from "@trigger.dev/sdk/v3";
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db/connection";
 import { collectionWorkloads } from "~/server/db/schemas/collection-workloads";
 import { resend } from "~/resend/connection";
 import { retry } from "@trigger.dev/sdk/v3";
-import { CollectionInquiryTemplate } from "~/resend/templates/collection-inquiry";
 
-export const collectionInitiative = schedules.task({
-  id: "collection-initiative",
+export const reminderCollectionInitiative = schedules.task({
+  id: "reminder-collection-initiative",
   run: async (payload) => {
     if (!payload.externalId) {
       throw new AbortTaskRunError("External ID is required");
@@ -35,11 +35,14 @@ export const collectionInitiative = schedules.task({
       async () => {
         const { data, error } = await resend.emails.send({
           from: "hello@updates.usecroma.com",
-          to: ["tomas@nilho.com"],
-          subject: "Hello World",
-          react: CollectionInquiryTemplate({
+          to: ["tomas@nilho.co"],
+          subject: "How is the payment going?",
+          headers: {
+            "X-Entity-Ref-ID": `collection-initiative-${collectionWorkload.id}`,
+          },
+          html: ReminderCollectionInquiry({
             firstName: "John",
-          }) as React.ReactElement,
+          }),
         });
 
         if (error) {
@@ -51,5 +54,7 @@ export const collectionInitiative = schedules.task({
       },
       { maxAttempts: 2 },
     );
+
+    return inquiryEmailResult;
   },
 });

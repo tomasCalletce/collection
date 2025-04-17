@@ -6,7 +6,7 @@ import { dbSocket } from "~/server/db/connection";
 import { schedules } from "@trigger.dev/sdk/v3";
 import { collectionWorkloads } from "~/server/db/schemas/collection-workloads";
 import { z } from "zod";
-import { collectionInitiative } from "~/trigger/collection-initiative";
+import { reminderCollectionInitiative } from "~/trigger/reminder-collection-initiative";
 import { StatusInquiryValues } from "~/server/db/schemas/constants";
 import { retry } from "@trigger.dev/sdk/v3";
 import { resend } from "~/resend/connection";
@@ -53,7 +53,7 @@ export const startCollectionInitiative = schemaTask({
         .where(eq(collectionWorkloads.id, initiative_id));
 
       const createdSchedule = await schedules.create({
-        task: collectionInitiative.id,
+        task: reminderCollectionInitiative.id,
         cron: collectionWorkload.cron,
         timezone: collectionWorkload.timezone,
         deduplicationKey: `collection-initiative-${collectionWorkload.id}`,
@@ -69,6 +69,9 @@ export const startCollectionInitiative = schemaTask({
             from: "hello@updates.usecroma.com",
             to: ["tomas@nilho.co"],
             subject: `Invoice from Nilho ${collectionWorkload.id}`,
+            headers: {
+              "X-Entity-Ref-ID": `collection-initiative-${collectionWorkload.id}`,
+            },
             html: startCollectionInitiativeEmail,
           });
           if (error) {
