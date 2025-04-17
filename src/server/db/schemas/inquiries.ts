@@ -1,33 +1,23 @@
-import {
-  pgTable,
-  timestamp,
-  uuid,
-  varchar,
-  json,
-  integer,
-} from "drizzle-orm/pg-core";
+import { pgTable, timestamp, uuid, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { StatusInquiryEnum, TimezoneEnum } from "~/server/db/schemas/constants";
+import { collectionWorkloads } from "~/server/db/schemas/collection-workloads";
 
 export const inquiries = pgTable("inquiries", {
   id: uuid("id").primaryKey().defaultRandom(),
-  target_email: varchar("target_email", { length: 255 }).notNull(),
-  ask_repetition: integer("ask_repetition").notNull(),
-  invoice_data: json("invoice_data").notNull(),
-  timezone: TimezoneEnum("timezone").notNull(),
-  cron: varchar("cron", { length: 100 }).notNull(),
-  status: StatusInquiryEnum("status").notNull().default("PENDING"),
-  start_date: timestamp("start_date").notNull().defaultNow(),
+  _collection_workload: uuid("collection_workload_id").references(
+    () => collectionWorkloads.id,
+  ),
+  response: json("response").notNull(),
   created_at: timestamp("created_at").notNull().defaultNow(),
   updated_at: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const verifyInvoicesSchema = createInsertSchema(inquiries).omit({
+export const verifyInquiriesSchema = createInsertSchema(inquiries).omit({
   id: true,
   created_at: true,
   updated_at: true,
 });
-export const formInvoicesSchema = createInsertSchema(inquiries).omit({
+export const formInquiriesSchema = createInsertSchema(inquiries).omit({
   id: true,
   created_at: true,
   updated_at: true,
