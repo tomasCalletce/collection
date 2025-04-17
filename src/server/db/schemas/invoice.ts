@@ -15,8 +15,5 @@ export const invoiceSchema = z.object({
   recipient: z.object({
     name: z.string(),
     company: z.string(),
-    address: z.string().optional(),
-    city: z.string().optional(),
-    country: z.string().optional(),
   }),
 });

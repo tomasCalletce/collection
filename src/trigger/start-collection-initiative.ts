@@ -10,6 +10,7 @@ import { reminderCollectionInitiative } from "~/trigger/reminder-collection-init
 import { StatusInquiryValues } from "~/server/db/schemas/constants";
 import { retry } from "@trigger.dev/sdk/v3";
 import { resend } from "~/resend/connection";
+import { createInitialCollectionEmail } from "~/server/services/create-initial-collection-email";
 
 export const startCollectionInitiative = schemaTask({
   id: "start-collection-initiative",
@@ -36,9 +37,12 @@ export const startCollectionInitiative = schemaTask({
       typeof verifyCollectionWorkloadsSchema.shape.invoice_data
     >;
 
+    const initialCollectionEmail =
+      await createInitialCollectionEmail(invoiceData);
+
     const startCollectionInitiativeEmail = StartCollectionTemplate({
       recipientName: invoiceData.recipient.name,
-      content: invoiceData.description,
+      body: initialCollectionEmail.body,
       total: invoiceData.amount,
       senderName: "Nilho",
     });
@@ -68,9 +72,9 @@ export const startCollectionInitiative = schemaTask({
           const { data, error } = await resend.emails.send({
             from: "hello@updates.usecroma.com",
             to: ["tomas@nilho.co"],
-            subject: `Invoice from Nilho ${collectionWorkload.id}`,
+            subject: `${initialCollectionEmail.subject} | Nilho | ${collectionWorkload.id}`,
             headers: {
-              "X-Entity-Ref-ID": `collection-initiative-${collectionWorkload.id}`,
+              "Message-ID": `<collection-initiative-${collectionWorkload.id}@usecroma.com>`,
             },
             html: startCollectionInitiativeEmail,
           });

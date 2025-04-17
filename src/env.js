@@ -10,6 +10,7 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]),
     TRIGGER_SECRET_KEY: z.string(),
     RESEND_API_KEY: z.string(),
+    OPENAI_API_KEY: z.string(),
   },
 
   /**
@@ -29,6 +30,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     TRIGGER_SECRET_KEY: process.env.TRIGGER_SECRET_KEY,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

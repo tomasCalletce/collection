@@ -9,6 +9,7 @@ import {
 } from "~/components/ui/table";
 import { api } from "~/trpc/server";
 import { Mail, RefreshCcw, Calendar } from "lucide-react";
+import { Test } from "~/app/_components/test";
 
 export default async function Home() {
   const allInquiries = await api.inquiry.all({
@@ -25,6 +26,7 @@ export default async function Home() {
             Manage and track your collection inquiries
           </p>
         </div>
+        <Test />
 
         <div className="bg-card rounded-lg border">
           <Table>

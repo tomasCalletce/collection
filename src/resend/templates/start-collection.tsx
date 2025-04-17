@@ -1,13 +1,13 @@
 interface StartCollectionProps {
   recipientName: string;
-  content: string;
+  body: string;
   total: number;
   senderName: string;
 }
 
 const StartCollectionTemplate = ({
   recipientName,
-  content,
+  body,
   total,
   senderName,
 }: StartCollectionProps): string => {
@@ -21,7 +21,7 @@ const StartCollectionTemplate = ({
   </div>
 
   <div>
-    <p>${content}</p>
+    <p>${body}</p>
   </div>
 
   <div>
