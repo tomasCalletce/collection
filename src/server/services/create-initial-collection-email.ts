@@ -12,17 +12,35 @@ export const createInitialCollectionEmail = async (
     }),
     schemaName: "collection_invoice_email",
     schemaDescription:
-      "A email to start the porcess of collecting payment from an invoice",
+      "A professional email body in HTML format for invoice payment requests",
     schema: z.object({
       subject: z.string(),
-      body: z.string(),
+      body: z
+        .string()
+        .describe(
+          "HTML-formatted email body that will be inserted into a template",
+        ),
     }),
-    prompt: `The user has an invoice that he need to send to a client or a partner.
-    This is the fisrt email in the cvollection process. ment to just inform the client or partner that the invoice is due and that they need to pay it.
-    The invoice is the following: ${JSON.stringify(invoiceData)}
-    Create an initial collection email to the client or partner to start the process of collecting payment.
-    my name is Tomas Calle i am the accounting executive Nilho.
-    `,
+    prompt: `Create a professional, concise payment request email body for the following invoice: ${JSON.stringify(invoiceData)}
+    
+This is the first communication in the collection process. The email should:
+- Be formatted in clean, responsive HTML
+- Have a professional and courteous tone
+- Clearly state the invoice details (invoice number if available, amount, description)
+- Be signed by Tomas Calle, Accounting Executive at Nilho
+
+IMPORTANT NOTES:
+1. Your output will be inserted into an existing email template that already contains:
+   - The recipient's name
+   - The sender's name
+   - Today's date
+   - The invoice total amount
+   - A "Thank you for your business" footer
+
+2. DO NOT include these elements in your response as they'll be duplicated
+3. Focus only on the main message content with payment instructions
+4. The HTML should be compatible with email clients and not use complex CSS
+`,
   });
 
   return emailContent;

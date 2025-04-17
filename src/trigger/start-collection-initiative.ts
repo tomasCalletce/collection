@@ -11,6 +11,8 @@ import { StatusInquiryValues } from "~/server/db/schemas/constants";
 import { retry } from "@trigger.dev/sdk/v3";
 import { resend } from "~/resend/connection";
 import { createInitialCollectionEmail } from "~/server/services/create-initial-collection-email";
+import { inquiries } from "~/server/db/schemas/inquiries";
+import { TypeInquiryValues } from "~/server/db/schemas/constants";
 
 export const startCollectionInitiative = schemaTask({
   id: "start-collection-initiative",
@@ -48,13 +50,26 @@ export const startCollectionInitiative = schemaTask({
     });
 
     return await dbSocket.transaction(async (tx) => {
-      await tx
+      const updatedCollectionWorkload = await tx
         .update(collectionWorkloads)
         .set({
           status: StatusInquiryValues.IN_PROGRESS,
           updated_at: new Date(),
         })
         .where(eq(collectionWorkloads.id, initiative_id));
+      if (!updatedCollectionWorkload) {
+        throw new AbortTaskRunError("Failed to update collection workload");
+      }
+
+      const createdInquiryRequest = await tx.insert(inquiries).values({
+        _collection_workload: initiative_id,
+        header: initialCollectionEmail.subject,
+        body: initialCollectionEmail.body,
+        type: TypeInquiryValues.REQUEST,
+      });
+      if (!createdInquiryRequest) {
+        throw new AbortTaskRunError("Failed to create inquiry request");
+      }
 
       const createdSchedule = await schedules.create({
         task: reminderCollectionInitiative.id,
