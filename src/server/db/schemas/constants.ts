@@ -17,6 +17,13 @@ export const StatusInquiryEnum = pgEnum("status_inquiry", [
   StatusInquiryValues.CANCELLED,
 ]);
 
+export const TypeInquiry = z.enum(["REQUEST", "RESPONSE"]);
+export const TypeInquiryValues = TypeInquiry.Values;
+export const TypeInquiryEnum = pgEnum("type_inquiry", [
+  TypeInquiryValues.REQUEST,
+  TypeInquiryValues.RESPONSE,
+]);
+
 export const Timezone = z.enum([
   "America/Sao_Paulo",
   "America/New_York",

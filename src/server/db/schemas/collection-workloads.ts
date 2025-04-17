@@ -34,10 +34,3 @@ export const verifyCollectionWorkloadsSchema = createInsertSchema(
   .extend({
     invoice_data: invoiceSchema,
   });
-export const formCollectionWorkloadsSchema = createInsertSchema(
-  collectionWorkloads,
-).omit({
-  id: true,
-  created_at: true,
-  updated_at: true,
-});
