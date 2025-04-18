@@ -68,13 +68,13 @@ export const reminderCollectionInitiative = schedules.task({
     });
 
     const updateAndSendEmail = await dbSocket.transaction(async (tx) => {
-      const createdInquiry = await tx.insert(inquiries).values({
+      const newInquiry = await tx.insert(inquiries).values({
         _collection_workload: collectionWorkload.id,
         header: reminderCollectionEmail.subject,
         body: reminderCollectionEmail.body,
         type: TypeInquiryValues.REQUEST,
       });
-      if (!createdInquiry) {
+      if (!newInquiry) {
         throw new AbortTaskRunError("Failed to create inquiry");
       }
 

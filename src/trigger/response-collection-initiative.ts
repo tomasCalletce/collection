@@ -1,48 +1,50 @@
-import ReminderCollectionInquiry from "~/resend/templates/reminder-collection";
-import { schedules, AbortTaskRunError } from "@trigger.dev/sdk/v3";
-import { eq, and, gte } from "drizzle-orm";
+import { AbortTaskRunError } from "@trigger.dev/sdk/v3";
+import { eq, and } from "drizzle-orm";
 import { dbSocket } from "~/server/db/connection";
 import { collectionWorkloads } from "~/server/db/schemas/collection-workloads";
-import { resend } from "~/resend/connection";
-import { retry } from "@trigger.dev/sdk/v3";
+import { StatusInquiryValues } from "~/server/db/schemas/constants";
+import { schemaTask } from "@trigger.dev/sdk/v3";
+import { z } from "zod";
 import { inquiries } from "~/server/db/schemas/inquiries";
-import { createFollowUpCollectionEmail } from "~/server/services/reminder-collection-email";
-import { type invoiceSchema } from "~/server/db/schemas/invoice";
-import { type z } from "zod";
-import {
-  TypeInquiryValues,
-  StatusInquiryValues,
-} from "~/server/db/schemas/constants";
+import { TypeInquiryValues } from "~/server/db/schemas/constants";
 
-export const reminderCollectionInitiative = schedules.task({
-  id: "reminder-collection-initiative",
-  run: async (payload) => {
-    if (!payload.externalId) {
-      throw new AbortTaskRunError("External ID is required");
-    }
-
+export const responseCollectionInitiative = schemaTask({
+  id: "response-collection-initiative",
+  schema: z.object({
+    initiative_id: z.string().uuid(),
+    email: z.object({
+      subject: z.string(),
+      body: z.string(),
+    }),
+  }),
+  run: async ({ initiative_id, email }) => {
     const [collectionWorkload] = await dbSocket
       .select({
         id: collectionWorkloads.id,
-        target_email: collectionWorkloads.target_email,
-        ask_repetition: collectionWorkloads.ask_repetition,
-        invoice_data: collectionWorkloads.invoice_data,
-        status: collectionWorkloads.status,
-        start_date: collectionWorkloads.start_date,
-        created_at: collectionWorkloads.created_at,
-        updated_at: collectionWorkloads.updated_at,
       })
       .from(collectionWorkloads)
       .where(
         and(
-          eq(collectionWorkloads.id, payload.externalId),
+          eq(collectionWorkloads.id, initiative_id),
           eq(collectionWorkloads.status, StatusInquiryValues.IN_PROGRESS),
         ),
       )
-
       .limit(1);
     if (!collectionWorkload) {
       throw new AbortTaskRunError("Collection workload not found");
+    }
+
+    const newInquiry = await dbSocket
+      .insert(inquiries)
+      .values({
+        _collection_workload: collectionWorkload.id,
+        header: email.subject,
+        body: email.body,
+        type: TypeInquiryValues.RESPONSE,
+      })
+      .returning();
+    if (!newInquiry) {
+      throw new AbortTaskRunError("Failed to create inquiry");
     }
   },
 });
