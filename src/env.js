@@ -11,6 +11,8 @@ export const env = createEnv({
     TRIGGER_SECRET_KEY: z.string(),
     RESEND_API_KEY: z.string(),
     OPENAI_API_KEY: z.string(),
+    CLERK_WEBHOOK_SIGNING_SECRET_USER_CREATED: z.string(),
+    CLERK_WEBHOOK_SIGNING_SECRET_ORG_CREATED: z.string(),
   },
 
   /**
@@ -31,7 +33,10 @@ export const env = createEnv({
     TRIGGER_SECRET_KEY: process.env.TRIGGER_SECRET_KEY,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+    CLERK_WEBHOOK_SIGNING_SECRET_USER_CREATED:
+      process.env.CLERK_WEBHOOK_SIGNING_SECRET_USER_CREATED,
+    CLERK_WEBHOOK_SIGNING_SECRET_ORG_CREATED:
+      process.env.CLERK_WEBHOOK_SIGNING_SECRET_ORG_CREATED,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

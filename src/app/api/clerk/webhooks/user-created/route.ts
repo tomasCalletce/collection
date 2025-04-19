@@ -2,17 +2,20 @@ import { type NextRequest } from "next/server";
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { db } from "~/server/db/connection";
 import { users } from "~/server/db/schemas/users";
+import { env } from "~/env";
 
 export async function POST(request: NextRequest) {
   try {
-    const evt = await verifyWebhook(request);
+    const event = await verifyWebhook(request, {
+      signingSecret: env.CLERK_WEBHOOK_SIGNING_SECRET_USER_CREATED as string,
+    });
 
-    const { id } = evt.data;
+    const { id } = event.data;
     if (!id) {
       return Response.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    const eventType = evt.type;
+    const eventType = event.type;
     if (eventType !== "user.created") {
       return Response.json({ error: "Invalid event type" }, { status: 400 });
     }
