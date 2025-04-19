@@ -3,7 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
-  clerk_id: text("clerk_id").notNull(),
+  clerk_id: text("clerk_id").notNull().unique(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
