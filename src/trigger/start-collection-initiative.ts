@@ -9,7 +9,7 @@ import { reminderCollectionInitiative } from "~/trigger/reminder-collection-init
 import { StatusCollectionWorkloadValues } from "~/server/db/schemas/constants";
 import { retry } from "@trigger.dev/sdk/v3";
 import { resend } from "~/resend/connection";
-import { askAIforInitialCollectionEmail } from "~/server/services/ai/ask-for-initial-collection-email";
+import { askAIforInitialCollectionEmail } from "~/server/services/ask-ai-for-initial-collection-email";
 import { inquiries } from "~/server/db/schemas/inquiries";
 import { TypeInquiryValues } from "~/server/db/schemas/constants";
 import { type verifyCollectionWorkloads } from "~/server/db/schemas/collection-workloads";
