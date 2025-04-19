@@ -30,7 +30,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" className={`${geist.variable}`}>
         <body>
-          <header className="flex h-16 items-center justify-end gap-4 p-4">
+          <header className="flex h-16 items-center justify-end gap-4 bg-slate-400 p-4">
             <SignedOut>
               <SignInButton />
               <SignUpButton />

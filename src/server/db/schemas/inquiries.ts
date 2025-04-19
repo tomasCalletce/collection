@@ -10,7 +10,7 @@ export const inquiries = pgTable("inquiries", {
   ),
   header: text("header").notNull(),
   body: text("body").notNull(),
-  type: TypeInquiryEnum("type").notNull(),
+  type_inquiry: TypeInquiryEnum("type_inquiry").notNull(),
   created_at: timestamp("created_at").notNull().defaultNow(),
   updated_at: timestamp("updated_at").notNull().defaultNow(),
 });

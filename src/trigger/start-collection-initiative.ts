@@ -1,5 +1,4 @@
 import StartCollectionTemplate from "~/resend/templates/start-collection";
-import { type verifyCollectionWorkloadsSchema } from "~/server/db/schemas/collection-workloads";
 import { schemaTask, AbortTaskRunError } from "@trigger.dev/sdk/v3";
 import { eq } from "drizzle-orm";
 import { dbSocket } from "~/server/db/connection";
@@ -7,45 +6,45 @@ import { schedules } from "@trigger.dev/sdk/v3";
 import { collectionWorkloads } from "~/server/db/schemas/collection-workloads";
 import { z } from "zod";
 import { reminderCollectionInitiative } from "~/trigger/reminder-collection-initiative";
-import { StatusInquiryValues } from "~/server/db/schemas/constants";
+import { StatusCollectionWorkloadValues } from "~/server/db/schemas/constants";
 import { retry } from "@trigger.dev/sdk/v3";
 import { resend } from "~/resend/connection";
-import { createInitialCollectionEmail } from "~/server/services/create-initial-collection-email";
+import { askAIforInitialCollectionEmail } from "~/server/services/ai/ask-for-initial-collection-email";
 import { inquiries } from "~/server/db/schemas/inquiries";
 import { TypeInquiryValues } from "~/server/db/schemas/constants";
+import { type verifyCollectionWorkloads } from "~/server/db/schemas/collection-workloads";
 
 export const startCollectionInitiative = schemaTask({
   id: "start-collection-initiative",
   schema: z.object({
-    initiative_id: z.string().uuid(),
+    _collection_workload: z.string().uuid(),
   }),
-  run: async ({ initiative_id }) => {
+  run: async ({ _collection_workload }) => {
     const [collectionWorkload] = await dbSocket
       .select({
         id: collectionWorkloads.id,
         target_email: collectionWorkloads.target_email,
-        invoice_data: collectionWorkloads.invoice_data,
+        invoice: collectionWorkloads.invoice,
         timezone: collectionWorkloads.timezone,
         cron: collectionWorkloads.cron,
       })
       .from(collectionWorkloads)
-      .where(eq(collectionWorkloads.id, initiative_id))
+      .where(eq(collectionWorkloads.id, _collection_workload))
       .limit(1);
     if (!collectionWorkload) {
       throw new AbortTaskRunError("collectionWorkload not found");
     }
 
-    const invoiceData = collectionWorkload.invoice_data as z.infer<
-      typeof verifyCollectionWorkloadsSchema.shape.invoice_data
-    >;
+    const invoice =
+      collectionWorkload.invoice as verifyCollectionWorkloads["invoice"];
 
     const initialCollectionEmail =
-      await createInitialCollectionEmail(invoiceData);
+      await askAIforInitialCollectionEmail(invoice);
 
     const startCollectionInitiativeEmail = StartCollectionTemplate({
-      recipientName: invoiceData.recipient.name,
+      recipientName: invoice.recipient.name,
       body: initialCollectionEmail.body,
-      total: invoiceData.amount,
+      total: invoice.amount,
       senderName: "Nilho",
     });
 
@@ -53,19 +52,20 @@ export const startCollectionInitiative = schemaTask({
       const updatedCollectionWorkload = await tx
         .update(collectionWorkloads)
         .set({
-          status: StatusInquiryValues.IN_PROGRESS,
+          status_collection_workload:
+            StatusCollectionWorkloadValues.IN_PROGRESS,
           updated_at: new Date(),
         })
-        .where(eq(collectionWorkloads.id, initiative_id));
+        .where(eq(collectionWorkloads.id, _collection_workload));
       if (!updatedCollectionWorkload) {
         throw new AbortTaskRunError("Failed to update collection workload");
       }
 
       const createdInquiryRequest = await tx.insert(inquiries).values({
-        _collection_workload: initiative_id,
+        _collection_workload: _collection_workload,
         header: initialCollectionEmail.subject,
         body: initialCollectionEmail.body,
-        type: TypeInquiryValues.REQUEST,
+        type_inquiry: TypeInquiryValues.REQUEST,
       });
       if (!createdInquiryRequest) {
         throw new AbortTaskRunError("Failed to create inquiry request");

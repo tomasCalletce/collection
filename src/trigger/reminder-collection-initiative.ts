@@ -7,12 +7,11 @@ import { resend } from "~/resend/connection";
 import { retry } from "@trigger.dev/sdk/v3";
 import { inquiries } from "~/server/db/schemas/inquiries";
 import { createFollowUpCollectionEmail } from "~/server/services/reminder-collection-email";
-import { type invoiceSchema } from "~/server/db/schemas/invoice";
-import { type z } from "zod";
 import {
   TypeInquiryValues,
-  StatusInquiryValues,
+  StatusCollectionWorkloadValues,
 } from "~/server/db/schemas/constants";
+import { type verifyCollectionWorkloads } from "~/server/db/schemas/collection-workloads";
 
 export const reminderCollectionInitiative = schedules.task({
   id: "reminder-collection-initiative",
@@ -25,9 +24,10 @@ export const reminderCollectionInitiative = schedules.task({
       .select({
         id: collectionWorkloads.id,
         target_email: collectionWorkloads.target_email,
-        ask_repetition: collectionWorkloads.ask_repetition,
-        invoice_data: collectionWorkloads.invoice_data,
-        status: collectionWorkloads.status,
+        max_attempts: collectionWorkloads.max_attempts,
+        invoice: collectionWorkloads.invoice,
+        status_collection_workload:
+          collectionWorkloads.status_collection_workload,
         start_date: collectionWorkloads.start_date,
         created_at: collectionWorkloads.created_at,
         updated_at: collectionWorkloads.updated_at,
@@ -36,8 +36,11 @@ export const reminderCollectionInitiative = schedules.task({
       .where(
         and(
           eq(collectionWorkloads.id, payload.externalId),
-          eq(collectionWorkloads.status, StatusInquiryValues.IN_PROGRESS),
-          gte(collectionWorkloads.ask_repetition, 0),
+          eq(
+            collectionWorkloads.status_collection_workload,
+            StatusCollectionWorkloadValues.IN_PROGRESS,
+          ),
+          gte(collectionWorkloads.max_attempts, 0),
         ),
       )
 
@@ -51,9 +54,8 @@ export const reminderCollectionInitiative = schedules.task({
       .from(inquiries)
       .where(eq(inquiries._collection_workload, collectionWorkload.id));
 
-    const invoiceData = collectionWorkload.invoice_data as z.infer<
-      typeof invoiceSchema
-    >;
+    const invoiceData =
+      collectionWorkload.invoice as verifyCollectionWorkloads["invoice"];
 
     const reminderCollectionEmail = await createFollowUpCollectionEmail(
       invoiceData,
@@ -72,7 +74,7 @@ export const reminderCollectionInitiative = schedules.task({
         _collection_workload: collectionWorkload.id,
         header: reminderCollectionEmail.subject,
         body: reminderCollectionEmail.body,
-        type: TypeInquiryValues.REQUEST,
+        type_inquiry: TypeInquiryValues.REQUEST,
       });
       if (!newInquiry) {
         throw new AbortTaskRunError("Failed to create inquiry");
@@ -81,7 +83,7 @@ export const reminderCollectionInitiative = schedules.task({
       const updatedCollectionWorkload = await tx
         .update(collectionWorkloads)
         .set({
-          ask_repetition: collectionWorkload.ask_repetition - 1,
+          max_attempts: collectionWorkload.max_attempts - 1,
           updated_at: new Date(),
         })
         .where(eq(collectionWorkloads.id, collectionWorkload.id));

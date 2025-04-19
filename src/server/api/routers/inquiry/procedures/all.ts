@@ -16,10 +16,11 @@ export const all = publicProcedure
       .select({
         id: collectionWorkloads.id,
         target_email: collectionWorkloads.target_email,
-        ask_repetition: collectionWorkloads.ask_repetition,
-        invoice_data: collectionWorkloads.invoice_data,
+        max_attempts: collectionWorkloads.max_attempts,
+        invoice: collectionWorkloads.invoice,
         timezone: collectionWorkloads.timezone,
-        status: collectionWorkloads.status,
+        status_collection_workload:
+          collectionWorkloads.status_collection_workload,
         start_date: collectionWorkloads.start_date,
         created_at: collectionWorkloads.created_at,
         updated_at: collectionWorkloads.updated_at,

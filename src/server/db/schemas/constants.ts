@@ -1,21 +1,24 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
-export const StatusInquiry = z.enum([
+export const StatusCollectionWorkload = z.enum([
   "PENDING",
   "IN_PROGRESS",
   "COMPLETED",
   "FAILED",
   "CANCELLED",
 ]);
-export const StatusInquiryValues = StatusInquiry.Values;
-export const StatusInquiryEnum = pgEnum("status_inquiry", [
-  StatusInquiryValues.PENDING,
-  StatusInquiryValues.IN_PROGRESS,
-  StatusInquiryValues.COMPLETED,
-  StatusInquiryValues.FAILED,
-  StatusInquiryValues.CANCELLED,
-]);
+export const StatusCollectionWorkloadValues = StatusCollectionWorkload.Values;
+export const StatusCollectionWorkloadEnum = pgEnum(
+  "status_collection_workload",
+  [
+    StatusCollectionWorkloadValues.PENDING,
+    StatusCollectionWorkloadValues.IN_PROGRESS,
+    StatusCollectionWorkloadValues.COMPLETED,
+    StatusCollectionWorkloadValues.FAILED,
+    StatusCollectionWorkloadValues.CANCELLED,
+  ],
+);
 
 export const TypeInquiry = z.enum(["REQUEST", "RESPONSE"]);
 export const TypeInquiryValues = TypeInquiry.Values;

@@ -1,10 +1,10 @@
 import { openai } from "@ai-sdk/openai";
-import { type invoiceSchema } from "~/server/db/schemas/invoice";
+import { type verifyCollectionWorkloads } from "~/server/db/schemas/collection-workloads";
 import { z } from "zod";
 import { generateObject } from "ai";
 
-export const createInitialCollectionEmail = async (
-  invoiceData: z.infer<typeof invoiceSchema>,
+export const askAIforInitialCollectionEmail = async (
+  invoiceData: verifyCollectionWorkloads["invoice"],
 ) => {
   const { object: emailContent } = await generateObject({
     model: openai("o3-mini", {
