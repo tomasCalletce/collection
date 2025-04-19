@@ -1,6 +1,18 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-export default clerkMiddleware();
+export default clerkMiddleware(async (auth, req) => {
+  const { userId, orgId } = await auth();
+
+  // Redirect signed in users to organization selection page if they are not active in an organization
+  if (userId && !orgId && req.nextUrl.pathname !== "/org") {
+    const searchParams = new URLSearchParams({ redirectUrl: req.url });
+
+    const orgSelection = new URL(`/org?${searchParams.toString()}`, req.url);
+
+    return NextResponse.redirect(orgSelection);
+  }
+});
 
 export const config = {
   matcher: [
