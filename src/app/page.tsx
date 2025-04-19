@@ -31,7 +31,6 @@ export default async function Dashboard() {
               <TableRow>
                 <TableHead className="w-[200px]">Email</TableHead>
                 <TableHead>Repetitions</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Start Date</TableHead>
               </TableRow>
             </TableHeader>
@@ -50,7 +49,6 @@ export default async function Dashboard() {
                       {inquiry.max_attempts}
                     </span>
                   </TableCell>
-                  <TableCell>{inquiry.status}</TableCell>
                   <TableCell>
                     <span className="inline-flex items-center gap-2">
                       <Calendar className="text-muted-foreground h-4 w-4" />
